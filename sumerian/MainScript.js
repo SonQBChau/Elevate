@@ -1,46 +1,10 @@
 'use strict';
 
-/*
- Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- 
- Licensed under the Apache License, Version 2.0 (the "License").
- You may not use this file except in compliance with the License.
- A copy of the License is located at
- 
-    http://www.apache.org/licenses/LICENSE-2.0
- 
- or in the "license" file accompanying this file. This file is distributed 
- on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- express or implied. See the License for the specific language governing 
- permissions and limitations under the License.
- */
-
-/**
- * This script is the main controller for this scene.
- * 
- * The main thread focuses on rendering and handling user interaction, while the web worker handles face detection and emotion analysis.
- * The JavaScript computer vision library, jsfeat (https://inspirit.github.io/jsfeat/) is used for face detection, and 
- * Amazon Rekognition is used when emotion analysis is also needed in addition to face detection.
- * At any point only one of the two face detection algorithms is used.
- * See the face detection section in setup() for more information.
- * 
- * Scene time-out is based on face detection. If there is no face detected for the duration of "face detection timeout (s)", the scene reverts back to the welcome screen.
- * 
- * Tweak the Host's speech content, button names, transition phrases, etc. as needed. They are listed at the top of this file.
- * 
- * This script depends on Utils.js and Speech.js. 
- * Please make sure that these above scripts are loaded before this script MainScript.js.
- */
 
 /* Host speeches */
 // Speech spoken when the start button is clicked or the user greets Cristine
-const greeting = "Welcome to the Elevated App."
-// const greeting =""
+const greeting = "<mark name='gesture:wave'/><break time='500ms'/>Welcome to the Elevated App."
 
-// The series of scripts that the Host will read out when the user greets her or presses the 'Start' button
-// const conversation = [
-// 	"My name is Cristine. I'm very excited to walk you through the experience",
-// ];
 const conversation = [
 	'<break time="500ms"/>'+"My name is Cristine. I'm very excited to walk you through the experience",
 ];
@@ -48,30 +12,9 @@ const conversation = [
 // Speech spoken when the info button is clicked
 const infoSpeech = 'You can use the microphone by holding down the mic button or space bar. You can also click on the buttons if you prefer. You can always say, "Show info" to come back to this page.';
 
-// Speech spoken when transitioning to the map scene
-// const mapSpeech = "Sure, let me show you my teammates' desk space.";
-// Speech spoken when transitioning to the map scene
-const musicSpeech = "Sure, let me see what type of music is good for you";
-// const musicSpeech = "";
 
-// Speech spoken when transitioning from the map scene.
-// const idleSpeech = 'You can hold down the mic button and say, "Show floor plan".';
-// You can hold down the mic button and say, "Check my face expression".
 const idleSpeech = 'You can hold down the mic button and say, "Check my expression" to see what type of music is good for you.';
-
-// Map button and hint texts
-// const showMapButtonText = "Show floor plan";
-// const showMapHintText = 'You can also say, "Show info," to get help on how to interact with this scene.';
-
-// const closeMapButtonText = "Close floor plan";
-// const closeMapButtonHint = 'Hold down the mic button and say, "Close floor plan".';
-
-// Music button and hint texts
-// const showMusicButtonText = "Show me the music";
-// const showMusicHintText = 'You can also say, "Show info," to get help on how to interact with this scene.';
-
-// const closeMusicButtonText = "Close music";
-// const closeMusicButtonHint = 'Hold down the mic button and say, "Close music".';
+// const idleSpeech = '';
 
 // Clarification speech options i.e. when the intent is not understood by Amazon Lex
 const clarificationSpeeches = ["Could you please repeat that?", "Can you please say that again?", "Pardon me?"];
@@ -79,15 +22,14 @@ const clarificationSpeeches = ["Could you please repeat that?", "Can you please 
 // Negative emotions as identified by Amazon Rekognition.
 // The host responds with either negativeEmotionGreeting or positiveEmotionGreeting set below.
 // See the list of available emotions: https://docs.aws.amazon.com/rekognition/latest/dg/API_Emotion.html
-const negativeEmotions = ['SAD', 'ANGRY', 'CONFUSED', 'DISGUSTED'];
+const negativeEmotions = ['SAD', 'ANGRY', 'CONFUSED', 'DISGUSTED', 'CALM'];
 
 // Initial greeting in response to the user's negativeEmotions as understood by Amazon Rekognition
-const negativeEmotionGreeting = "You look sad. Is everything okay? Do you want to play some music to lift up your mood?";
-// const negativeEmotionGreeting = "";
+const negativeEmotionGreeting = "<mark name='gesture:heart'/><break time='500ms'/>You look sad. Is everything okay? Do you want to play some soul-soothing music?";
 
 // Initial greeting in response to the user's positiveEmotions as understood by Amazon Rekognition
-const positiveEmotionGreeting = "You look great! How about some happy music?"
-// const positiveEmotionGreeting = ""
+const positiveEmotionGreeting = "<mark name='gesture:aggressive'/><break time='500ms'/>You look great! How about some happy music?"
+
 
 let song_id = ""
 
@@ -228,18 +170,59 @@ function showFaceAnalysisData(emotion, brightness, sharpness, ctx) {
  * @param {String} [emotion] Emotion
  * @returns {String} Greeting
  */
-//TODO: set some emotion for host based on emotion get back
 function setContextByEmotion(ctx, emotion) {
 	if (negativeEmotions.indexOf(emotion) !== -1) {
-		song_id = '4qoaNnRQVDjX9zVplzghZB';// sad song
-		ctx.spotify_iframe.src = "https://open.spotify.com/embed/track/" + song_id;
+// 		song_id = '4qoaNnRQVDjX9zVplzghZB';// sad song
+		//Retrieve from DDB 
+		//TODO: random song_number
+		getDataFromDynamo(ctx, ctx.worldData.usersTable, 'CALM', '19').then((data) => {
+			song_id = data.track_id;
+			ctx.spotify_iframe.src = "https://open.spotify.com/embed/track/" + song_id;
+		});
+		
 		return negativeEmotionGreeting;
 	} else {
-		song_id = '5JqZ3oqF00jkT81foAFvqg';//happy song
-		ctx.spotify_iframe.src = "https://open.spotify.com/embed/track/" + song_id;
+// 		song_id = '5JqZ3oqF00jkT81foAFvqg';//happy song
+		//Retrieve from DDB 
+		//TODO: random song_number
+		getDataFromDynamo(ctx, ctx.worldData.usersTable, 'HAPPY', '50').then((data) => {
+			song_id = data.track_id;
+			ctx.spotify_iframe.src = "https://open.spotify.com/embed/track/" + song_id;
+		});
+	
 		return positiveEmotionGreeting;
 	}
 }
+
+/**
+ * Returns a Promise to resolve a DDB object. Ensure that you have a block to ensure data is returned appropriately.
+ */
+function getDataFromDynamo(ctx, tableName, mood, songNumber) {
+	return new Promise((resolve, reject) => {
+		const params = {
+			TableName: tableName,
+			Key: {
+				"mood": {
+					S: mood
+				},
+				"song_number":{
+					N: songNumber
+				}
+			}
+		};
+
+		ctx.worldData.dynamodb.getItem(params, (err, data) => {
+			if (err) {
+				throw new Error(`Error getting user data from Amazon DynamoDB: ${err.name}. ${err.message}`);
+			} else {
+				const scheduleData = AWS.DynamoDB.Converter.unmarshall(data['Item']);
+				resolve(scheduleData);
+			}
+		});
+	})
+}
+
+
 
 /**
  * Speaks the "index"-th string in the list of conversation array
@@ -267,7 +250,6 @@ function reset(args, ctx) {
  * Resets the scene so the Host can greet again.
  * This also hides the map, as she suggests to show map at the end of the greeting.
  */
-//TODO: 
 function resetScreenForGreeting(args, ctx) {
 	sumerian.SystemBus.emit("concierge.hideMapEntity");
 	ctx.hostSpeech.innerHTML = "";
@@ -305,6 +287,7 @@ function setup(args, ctx) {
 		enter() {
 			ctx.worldData.Utils.showElementId(ctx.title);
 			ctx.worldData.Utils.showElementId(ctx.introHintSection);
+
 		},
 		exit() {
 			ctx.worldData.Utils.hideElementId(ctx.title);
@@ -318,111 +301,33 @@ function setup(args, ctx) {
 	 */
 	ctx.greetingScreen = {
 		enter() {
-			// If the Host has greeted already and it's not returning back to greeting screen from the info screen, then reset the scene for greeting
-			if (ctx.worldData.screenStates.previousScreenState !== ctx.worldData.screenOptions.infoScreen) {
-				if (ctx.convoCounter >= conversation.length) {
-					resetScreenForGreeting(args, ctx);
-				}
-			} else {
-				//TODO
-// 				ctx.displayShowMapUI();
-	
-			}
-			
-
 			ctx.worldData.Utils.showElementId(ctx.hostSpeech);
 		},
 		exit() {
 			ctx.worldData.Utils.hideElementId(ctx.hostSpeech);
-
-			// Hide the map UIs shown at the end of greeting sequence as mentioned above.
-// 			ctx.hideMapUI();
-
 		}
 	}
 
-	/**
-	 * The map screen shows the map and the Host's speech as well as related UI buttons.
-	 */
-	/*
-	ctx.mapScreen = {
-		enter() {
-			ctx.worldData.Utils.showElementId(ctx.hostSpeech);
 
-			// Show map button and map hint at the end of speech in Speech.js
-// 			ctx.displayCloseMapUI();
-			// TODO:
-			ctx.displayCloseMusicUI();
-		},
-		exit() {
-			ctx.worldData.Utils.hideElementId(ctx.hostSpeech);
-
-			// The main text content width is resized in ctx.onHideTextForMapInteraction to allow for map interaction.
-			// Return to the original size as specified in Initialization.js
-			ctx.mainTextContent.style.width = ctx.worldData.textWidth;
-
-			// Change back the UI contents
-// 			ctx.worldData.mapButton.innerHTML = showMapButtonText;
-// 			ctx.worldData.mapHint.innerHTML = showMapHintText;
-			
-			//TODO:
-			ctx.worldData.musicButton.innerHTML = showMusicButtonText;
-			ctx.worldData.musicHint.innerHTML = showMusicHintText;
-
-			ctx.hideMapUI();
-		}
-	}
-	*/
 	/**
 	 * The face screen
 	 */
 	
 	ctx.faceAnalyzeScreen = {
 		enter() {
-// 			ctx.worldData.Utils.showElementId(ctx.faceHint);
 		},
 		exit() {
-// 			ctx.worldData.Utils.hideElementId(ctx.faceHint);
 		}
 	}
 	
 	ctx.musicScreen = {
 		enter() {
-// 			ctx.hideMusicUI();
-// 			ctx.displaySpotifyUI();
 		},
 		exit() {
 
 		}
 	}
 
-	/**
-	 * The info screen toggles the interactivity for info button and info close button as well as visibility of the Host's speech. This case is special in the sense that when the state is exited, it goes back to the previous screen.
-	 */
-	ctx.infoScreen = {
-		// Remember the Host's previous speech when it enters the infoScreen and switch it back when the infoScreen is exited.
-		previousSpeech: null,
-
-		enter() {
-			this.previousSpeech = ctx.hostSpeech.innerHTML;
-
-			ctx.worldData.Utils.showElementId(ctx.infoHint);
-			ctx.worldData.Utils.showElementId(ctx.infoContent);
-
-			ctx.worldData.Utils.showElementId(ctx.hostSpeech);
-			ctx.entityData.Speech.playSpeech(infoSpeech);
-		},
-		exit() {
-			ctx.worldData.Utils.hideElementId(ctx.infoHint);
-			ctx.worldData.Utils.hideElementId(ctx.infoContent);
-
-			ctx.worldData.Utils.hideElementId(ctx.hostSpeech);
-			ctx.hostSpeech.innerHTML = this.previousSpeech;
-
-			// Show the info button after the info screen is closed.
-			ctx.worldData.Utils.showElementId(ctx.worldData.infoButton);
-		}
-	}
 
 
 	/**
@@ -432,17 +337,10 @@ function setup(args, ctx) {
 		enter() {
 			ctx.hostSpeech.innerHTML = idleSpeech;
 			ctx.worldData.Utils.showElementId(ctx.hostSpeech);
-			
-// 			ctx.displayShowMapUI();
-			//TODO:
-// 			ctx.displayShowMusicUI();
 			ctx.displayFaceAnalyzerUI();
 
 		},
 		exit() {
-// 			ctx.hideMapUI();
-			//TODO:
-// 			ctx.hideMusicUI();
 			ctx.hideFaceAnalyzerUI();
 
 
@@ -454,10 +352,8 @@ function setup(args, ctx) {
 	ctx.worldData.screenOptions = {
 		welcomeScreen: ctx.welcomeScreen,
 		greetingScreen: ctx.greetingScreen,
-// 		mapScreen: ctx.mapScreen,
 		faceAnalyzeScreen: ctx.faceAnalyzeScreen,
 		musicScreen: ctx.musicScreen,
-		infoScreen: ctx.infoScreen,
 		idleScreen: ctx.idleScreen
 	}
 
@@ -483,36 +379,6 @@ function setup(args, ctx) {
 		ctx.worldData.screenStates.currentScreenState = newState;
 		ctx.worldData.screenStates.currentScreenState.enter();
 	}
-
-	/**
-	 * Displays the map hint and button contents to suggest opening map.
-	 */
-// 	ctx.displayShowMapUI = () => {
-// 		ctx.worldData.mapButton.innerHTML = showMapButtonText;
-// 		ctx.worldData.mapHint.innerHTML = showMapHintText;
-
-// 		ctx.worldData.Utils.showElementId(ctx.worldData.mapButton);
-// 		ctx.worldData.Utils.showElementId(ctx.worldData.mapHint);
-// 	}
-
-	/**
-	 * Displays the map hint and button contents to suggest closing map.
-	 */
-// 	ctx.displayCloseMapUI = () => {
-// 		ctx.worldData.mapButton.innerHTML = closeMapButtonText;
-// 		ctx.worldData.mapHint.innerHTML = closeMapButtonHint;
-
-// 		ctx.worldData.Utils.showElementId(ctx.worldData.mapButton);
-// 		ctx.worldData.Utils.showElementId(ctx.worldData.mapHint);
-// 	}
-	
-	/**
-	 * Hides the map hint and button.
-	 */
-// 	ctx.hideMapUI = () => {
-// 		ctx.worldData.Utils.hideElementId(ctx.worldData.mapButton);
-// 		ctx.worldData.Utils.hideElementId(ctx.worldData.mapHint);
-// 	}
 
 	//TODO:
 	/**
@@ -701,10 +567,6 @@ function setup(args, ctx) {
 	ctx.startButton = document.getElementById("startButton");
 	ctx.mainTextContent = document.getElementById("mainTextContent");
 
-// 	ctx.worldData.mapButton = document.getElementById("mapButton");
-// 	ctx.worldData.mapHint = document.getElementById("mapHint");
-	
-	//TODO:
 	///* Face */
 	ctx.checkFaceButton = document.getElementById("faceButton");
 	ctx.faceHint = document.getElementById("faceHint");
@@ -720,18 +582,6 @@ function setup(args, ctx) {
 	ctx.infoHint = document.getElementById("infoHint");
 	ctx.infoContent = document.getElementById("infoContent");
 
-	/* Map */
-
-// 	ctx.worldData.mapButton.innerHTML = showMapButtonText;
-// 	ctx.worldData.mapHint.innerHTML = showMapHintText;
-	
-	/* Music */
-
-
-// 	ctx.mapEntity = args.map;
-// 	if (ctx.mapEntity.isVisible) {
-// 		ctx.mapEntity.hide();
-// 	}
 
 	/**
 	 * Web Worker
@@ -1121,22 +971,9 @@ function setup(args, ctx) {
 			case "ThankYou":
 				ctx.entityData.Speech.playSpeech(msg);
 				break;
-// 			case "Floorplan":
-// 				ctx.toggleMapClickEvent();
-// 				break;
-// 			case "CloseFloorplan":
-// 				ctx.toggleMapClickEvent();
-// 				break;
-			//TODO:
-// 			case "CheckFace":
-// 				ctx.checkFaceButton.click();
-// 				break;
-// 			case "Music":
-// 				ctx.toggleMusicClickEvent();
-// 				break;
-// 			case "CloseMusic":
-// 				ctx.toggleMusicClickEvent();
-// 				break;
+			case "CheckExpression":
+				ctx.checkFaceButton.click();
+				break;
 			default:
 				const index = ctx.worldData.Utils.getRandomInt(clarificationSpeeches.length);
 				ctx.entityData.Speech.playSpeech(clarificationSpeeches[index]);
@@ -1163,35 +1000,14 @@ function setup(args, ctx) {
 	 */
 	ctx.startGreeting = () => {
 		ctx.changeToState(ctx.worldData.screenOptions.greetingScreen);
-
-
-		// (1) in the face detection diagram above.
-		// Start analyzing emotion for setInitialGreeting()
-		// TODO: do this when press the button listen to music
-// 		ctx.requestEmotion = true;
 	}
 
-	/**
-	 * Change to the map screen.
-	 * The map transition animation is handled by the State Machine's 'Map Behavior' behavior.
-	 */
-// 	ctx.onShowMap = () => {
-// 		ctx.changeToState(ctx.worldData.screenOptions.mapScreen);
 
-// 		ctx.entityData.Speech.playSpeech(mapSpeech);
-// 	}
-	
-	
-	//TODO:
 	/**
 	 * Change to the check face screen.
 	 */
 	ctx.onCheckFace = () => {
 		ctx.changeToState(ctx.worldData.screenOptions.faceAnalyzeScreen);
-		// (1) in the face detection diagram above.
-		// Start analyzing emotion 
-// 		ctx.requestEmotion = true;
-// 		console.log('check face turn on')
 	}
 	/**
 	 * Change to the music screen.
@@ -1199,28 +1015,7 @@ function setup(args, ctx) {
 	 */
 	ctx.onShowMusic = () => {
 		ctx.changeToState(ctx.worldData.screenOptions.musicScreen);
-
-// 		ctx.entityData.Speech.playSpeech(musicSpeech);
 	}
-
-	/**
-	 * Change out of the map screen when the map button is toggled to close or user uses Lex to close the map.
-	 * The map transition animation is handled by the State Machine's 'Map Behavior' behavior. It's listening to 'concierge.hideMapEntity' event.
-	 */
-// 	ctx.onHideMap = () => {
-// 		sumerian.SystemBus.emit("concierge.hideMapEntity");
-
-// 		ctx.worldData.Utils.sleep(args.mapAnimationBufferTime).then(() => {
-// 			switch(ctx.worldData.screenStates.currentScreenState) {
-// 				case ctx.worldData.screenOptions.greetingScreen:
-// 					ctx.startGreeting();
-// 					break;
-// 				default:
-// 					ctx.changeToState(ctx.worldData.screenOptions.idleScreen);
-// 					break;
-// 			}
-// 		});
-// 	};
 
 	/**
 	 * Handles concierge.onHideTextForMapInteraction event from the State Machine.
@@ -1232,27 +1027,13 @@ function setup(args, ctx) {
 		ctx.mainTextContent.style.width = args.textWidthForMap + "%";
 	}
 
-	/**
-	 * Emits event accordingly when the map button is pressed.
-	 */
-// 	ctx.toggleMapClickEvent = () => {
-// 		if (ctx.worldData.screenStates.currentScreenState !== ctx.worldData.screenOptions.mapScreen) {
-// 			sumerian.SystemBus.emit("concierge.showMapEvent");
-// 		} else {
-// 			sumerian.SystemBus.emit("concierge.hideMapEvent");
-// 		}
-// 	}
 	
-		/**
+	/**
 	 * Emits event accordingly when the map button is pressed.
 	 */
 	//TODO
 	ctx.toggleMusicClickEvent = () => {
 		if (ctx.worldData.screenStates.currentScreenState !== ctx.worldData.screenOptions.musicScreen) {
-// 			sumerian.SystemBus.emit("concierge.showMapEvent");
-// 			ctx.worldData.Utils.callAPI();
-			
-			
 			// call musicSpeech
 			ctx.entityData.Speech.playSpeech(musicSpeech);
 			// show song widget
@@ -1266,19 +1047,6 @@ function setup(args, ctx) {
 		}
 	}
 
-	/**
-	 * Change to the info page when the user clicks on the "Info" button or uses Lex to show info.
-	 */
-	ctx.onShowInfoScreen = () => {
-		ctx.changeToState(ctx.worldData.screenOptions.infoScreen);
-	}
-
-	/**
-	 * Change out of the info page when user clicks on the "Close info" button or uses Lex to close info.
-	 */
-	ctx.onHideInfoScreen = () => {
-		ctx.changeToState(ctx.worldData.screenStates.previousScreenState);
-	}
 
 	ctx.worldData.dynamodb = null;
 	ctx.worldData.usersTable = args.usersTable;
@@ -1288,16 +1056,12 @@ function setup(args, ctx) {
 		ctx.setResources();
 	}, true);
 
-// 	ctx.worldData.mapButton.addEventListener("click", ctx.toggleMapClickEvent);
-	//TODO
 	ctx.musicButton.addEventListener("click", ctx.toggleMusicClickEvent);
 	ctx.startButton.addEventListener("click", ctx.startGreeting);
 	ctx.checkFaceButton.addEventListener("click", ctx.onCheckFace);
 
 	sumerian.SystemBus.addListener("concierge.videoCanPlay", ctx.onVideoStarted);
 	sumerian.SystemBus.addListener("concierge.lexResponseEvent", ctx.onLexResponse);
-// 	sumerian.SystemBus.addListener("concierge.showMapEvent", ctx.onShowMap);
-// 	sumerian.SystemBus.addListener("concierge.hideMapEvent", ctx.onHideMap);
 	sumerian.SystemBus.addListener("concierge.showMusicEvent", ctx.onShowMusic);
 	sumerian.SystemBus.addListener("concierge.hideMusicEvent", ctx.onHideMusic);
 
@@ -1312,11 +1076,6 @@ function setup(args, ctx) {
 	 */
 	sumerian.SystemBus.addListener("concierge.hideTextOverlayOnMapEvent", ctx.onHideTextForMapInteraction);
 
-	/**
-	 * Listens to events from the "Info Button Behavior" in the State Machine.
-	 */
-	sumerian.SystemBus.addListener("concierge.showInfoEvent", ctx.onShowInfoScreen);
-	sumerian.SystemBus.addListener("concierge.hideInfoEvent", ctx.onHideInfoScreen);
 };
 
 function fixedUpdate(args, ctx) {
@@ -1334,15 +1093,6 @@ function update(args, ctx) {
 				const tod = "Good " + ctx.worldData.Utils.getTimeofDay();
 				ctx.entityData.Speech.playSpeech(tod + ", " + greeting);
 			} else if (ctx.convoCounter === ctx.initialConvoIndex + 1) {
-// 				const greeting = setInitialGreeting(ctx.emotion);
-				//TODO: play face analysis here
-// 				ctx.entityData.Speech.playSpeech(greeting);
-
-				// (3) in the face detection diagram above.
-				// No longer need emotion analysis after the initial greeting.
-// 				ctx.requestEmotion = false;
-// 				console.log('=========');
-// 				console.log('turn off face detection');
 
 				// Switch back to using JSFeat for face detection if it was using Rekognition for emotion analysis.
 				if (ctx.faceDetectionAlgorithm === ctx.faceDetectionAlgorithmOptions.rekognition) {
@@ -1351,17 +1101,9 @@ function update(args, ctx) {
 			} else if (ctx.convoCounter === conversation.length) {
 				ctx.entityData.Speech.playSpeech(idleSpeech);
 
-// 				ctx.worldData.Utils.showElementId(ctx.worldData.mapButton);
-// 				ctx.worldData.Utils.showElementId(ctx.worldData.mapHint);
-				// show music button
-// 				ctx.worldData.Utils.showElementId(ctx.worldData.musicButton);
-// 				ctx.worldData.Utils.showElementId(ctx.worldData.musicHint);
-				//show face button
-				// show button to analyze face after speech
 				ctx.displayFaceAnalyzerUI();
 				ctx.requestEmotion = true;
-// 				ctx.worldData.Utils.showElementId(ctx.checkFaceButton);
-// 				ctx.worldData.Utils.showElementId(ctx.faceHint);
+
 			} else {
 				invokeConversation(conversation, ctx.convoCounter, ctx);
 			}
@@ -1374,15 +1116,16 @@ function update(args, ctx) {
 	// for face analyzing
 	if (!ctx.entityData.Speech.isSpeaking && ctx.worldData.screenStates.currentScreenState === ctx.worldData.screenOptions.faceAnalyzeScreen && ctx.requestEmotion == true){
 		// Using an array of conversation string to pace the conversation and close caption
-		const feedback = setContextByEmotion(ctx,ctx.emotion);
+		let feedback = setContextByEmotion(ctx,ctx.emotion);
 		//TODO: play face analysis here
+		ctx.worldData.Utils.showElementId(ctx.hostSpeech);
 		ctx.entityData.Speech.playSpeech(feedback);
 
 		// (3) in the face detection diagram above.
 		// No longer need emotion analysis after the initial greeting.
 		ctx.requestEmotion = false;
 		ctx.showMusic = true;
-		console.log('turn off face detection');
+
 
 		// Switch back to using JSFeat for face detection if it was using Rekognition for emotion analysis.
 		if (ctx.faceDetectionAlgorithm === ctx.faceDetectionAlgorithmOptions.rekognition) {
@@ -1391,14 +1134,13 @@ function update(args, ctx) {
 		
 		ctx.hideFaceAnalyzerUI();
 		ctx.onShowMusic();
-// 		ctx.displaySpotifyUI();	
 	}
 	
 	// for displaying music
 	if (!ctx.entityData.Speech.isSpeaking && ctx.worldData.screenStates.currentScreenState === ctx.worldData.screenOptions.musicScreen && ctx.showMusic == true){
 	
 		ctx.showMusic = false;
-		console.log('turn off showmusic');
+		ctx.worldData.Utils.hideElementId(ctx.hostSpeech);
 		ctx.displaySpotifyUI();	
 	}
 };
@@ -1412,16 +1154,12 @@ function cleanup(args, ctx) {
 		ctx.worker.removeEventListener('message', ctx.workerEventHandlers, false);
 	}
 
-// 	ctx.worldData.mapButton.removeEventListener("click", ctx.toggleMapClickEvent);
-// 	TODO
 	ctx.musicButton.removeEventListener("click", ctx.toggleMusicClickEvent);
 	ctx.startButton.removeEventListener("click", ctx.startGreeting);
 	ctx.checkFaceButton.removeEventListener("click", ctx.onCheckFace);
 
 	sumerian.SystemBus.removeListener("concierge.videoCanPlay", ctx.onVideoStarted);
 	sumerian.SystemBus.removeListener("concierge.lexResponseEvent", ctx.onLexResponse);
-// 	sumerian.SystemBus.removeListener("concierge.showMapEvent", ctx.onShowMap);
-// 	sumerian.SystemBus.removeListener("concierge.hideMapEvent", ctx.onHideMap);
 	sumerian.SystemBus.removeListener("concierge.showMusicEvent", ctx.onShowMusic);
 	sumerian.SystemBus.removeListener("concierge.hideMusicEvent", ctx.onHideMusic);
 
