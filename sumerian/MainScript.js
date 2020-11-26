@@ -175,7 +175,7 @@ function setContextByEmotion(ctx, emotion) {
 // 		song_id = '4qoaNnRQVDjX9zVplzghZB';// sad song
 		//Retrieve from DDB 
 		//TODO: random song_number
-		getDataFromDynamo(ctx, ctx.worldData.usersTable, 'CALM', '19').then((data) => {
+		getDataFromDynamo(ctx, ctx.worldData.usersTable, 'CALM', '2').then((data) => {
 			song_id = data.track_id;
 			ctx.spotify_iframe.src = "https://open.spotify.com/embed/track/" + song_id;
 		});

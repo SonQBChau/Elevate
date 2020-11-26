@@ -1,0 +1,46 @@
+[
+    {
+      "gesture": "big",
+      "words": "add, above, authority, big, cover, full, fly, grow, growth, high, huge, increase, major, majority, large, leader, lot, raise, rise, tall"
+    },
+    {
+      "gesture": "heart",
+      "words": "accept, admit, believe, care, feeling, feel, friend, grateful, happy, heart, human, pain, save, safe, kind, love"
+    },
+    {
+      "gesture": "in",
+      "words": "include, including, inside, into, now, near, nearest, closest, therein, within"
+    },
+    {
+      "gesture": "many",
+      "words": "all, always, any, anyone, among, area, around, beautiful, entire, environment, environments, environmental, everybody, everyone, everything, audience, total, group, groups, million, millions, others, billion, billions, hundred, hundreds, many, thousand, thousands, world, worlds, outside, reveal"
+    },
+    {
+      "gesture": "movement",
+      "words": "away, across, ahead, along, far, fast, follow, go, leave, move, movement, through, throughout, toward, travel, turned, passed"
+    },
+    {
+      "gesture": "one",
+      "words": "single, one, once, first, firstly, only, solo, warned, truly, up, alone"
+    },
+    {
+      "gesture": "aggressive",
+      "words": "power, powers, powerful, assert, assertive, strong, stronger, strongest, strength, flex, dang, damn, damnit, darn, shucks, doh, drat, angry, angrier, angriest, aggressive, annoyed, annoying, attack, attacking, offense, offensive, battle"
+    },
+    {
+      "gesture": "you",
+      "words": "you, yall, y'all, your, yours, thou, thy"
+    },
+    {
+      "gesture": "defense",
+      "words": "defense, fear, repulsed, scared, scary, scarier, scariest, fearful, afraid, cower, cowers, cowering, hideous, doomed, terrified, terrify, terrifying, terrifies, spooky, spookier, spookiest"
+    },
+    {
+      "gesture": "wave",
+      "words": "hello, hi, hiya, howdy, welcome, aloha, heya, hey, bye, goodbye, hola, adios, chao"
+    },
+    {
+      "gesture": "self",
+      "words": "my, i, myself, self, i've, Ive, me, mine"
+    }
+  ]
