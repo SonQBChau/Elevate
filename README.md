@@ -1,6 +1,7 @@
 # Elevate
 
-## Our Project goal is to determine the emotion recognition and play a song from playlist to uplift the mood. 
+## Emotion recognition and play a song from playlist to uplift the mood. 
+
 
 
 * Analyzing Video Stream and predicting an emotion. We will need to detect face from video stream and use amazon emotion rekognition API to determine emotion.
@@ -8,4 +9,4 @@
 * Use emotion recognition response and play a song from classified playlist using predefined mapping between emotion <-> mood of the song. 
 
 
-### Project Report: https://github.com/UNT-5214-P4/Elevate/blob/main/P4_ProjectReport-Elevate.pdf
+
