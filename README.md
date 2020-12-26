@@ -18,4 +18,4 @@
 
 ## Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=J-n7B4eXZw0" target="_blank"><img src="https://i9.ytimg.com/vi/J-n7B4eXZw0/mq2.jpg?sqp=CIiImv8F&rs=AOn4CLDmBbUuaNji_lTPGY0SQT0gnnDqhw" 
-alt="IMAGE ALT TEXT HERE" width="320" height="180" border="1" /></a>
+alt="IMAGE ALT TEXT HERE" width="320" height="180" border="2" /></a>
